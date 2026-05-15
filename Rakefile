@@ -12,7 +12,7 @@ RESET = "\033[0m"
 def run_command(cmd, silent: true, print_command: false, report_status: false)
   puts "#{GREEN}Running #{cmd}#{RESET}" if print_command
   output = ''
-  Open3.popen2e(cmd) do |_stdin, stdout_stderr, thread|
+  Open3.popen2(cmd, err: '/dev/null') do |_stdin, stdout_stderr, thread|
     stdout_stderr.each do |line|
       puts line unless silent
       output += line
@@ -23,7 +23,7 @@ def run_command(cmd, silent: true, print_command: false, report_status: false)
       # Print details if we were running silent
       err += "\nOutput:\n#{output}" if silent
       err += RESET
-      abort err
+      raise err
     end
     puts "#{GREEN}Command finished with status #{exitcode}#{RESET}" if report_status
   end
