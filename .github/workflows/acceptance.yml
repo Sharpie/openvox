@@ -38,7 +38,7 @@ on:
           (Fork) The fork of openvox to run the Beaker test suite from.
         required: true
         type: string
-        default: openvoxproject
+        default: Sharpie
       pre-release-build:
         description: |-
           (Pre-release Build) Whether to test unreleased version
@@ -107,7 +107,7 @@ jobs:
         suite-name:
           - openvox
           - openvox-agent
-    uses: 'OpenVoxProject/shared-actions/.github/workflows/beaker_acceptance.yml@main'
+    uses: 'Sharpie/shared-actions/.github/workflows/beaker_acceptance.yml@tests-from-platforms'
     with:
       suite-name: ${{ matrix.suite-name }}
       ref: ${{ inputs.ref }}
