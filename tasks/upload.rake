@@ -19,7 +19,16 @@ namespace :vox do
     abort 'You must set the BUCKET_NAME environment variable to the S3 bucket you are uploading to.' if bucket.nil? || bucket.empty?
     abort 'You must provide a tag.' if args[:tag].nil? || args[:tag].empty?
 
-    munged_tag = args[:tag].gsub('-', '.')
+    munged_tag = case args[:tag]
+                 # Matches semver.org spec for a pre-release, with a well-known
+                 # alpha, beta, or RC identifier. Substitute "-" for "~" so
+                 # that dpkg and rpm treat this as a pre-release and will
+                 # upgrade packages to the final version.
+                 when /\A\d+\.\d+\.\d+-(?:alpha|beta|rc)\d+/
+                   args[:tag].sub('-', '~')
+                 else
+                   args[:tag].gsub('-', '.')
+                 end
     s3 = "aws s3 --endpoint-url=#{endpoint}"
 
     # Ensure the AWS CLI isn't going to fail with the given parameters
@@ -41,7 +50,7 @@ namespace :vox do
     files = Dir.glob(glob)
     abort 'No files for the given tag found in the output directory.' if files.empty?
 
-    path = "s3://#{bucket}/#{component}/#{args[:tag]}"
+    path = "s3://#{bucket}/#{component}/#{munged_tag}"
     files.each do |f|
       f = `cygpath -m #{f}`.chomp if os =~ /windows/
       run_command("#{s3} cp #{f} #{path}/#{File.basename(f)} --no-progress", silent: false)
